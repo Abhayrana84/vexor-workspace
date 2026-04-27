@@ -79,7 +79,7 @@ export const GET = withAuth(async (req, session) => {
   }
 
   // Hydrate activities (BATCH FETCH)
-  const userIds = [...new Set(recentActivity.map(a => a.userId).filter(Boolean))]
+  const userIds = Array.from(new Set(recentActivity.map((a: any) => a.userId).filter(Boolean)))
   const userDocs = userIds.length > 0 
     ? await adminDb.getAll(...userIds.map(id => adminDb.collection('users').doc(id)))
     : []

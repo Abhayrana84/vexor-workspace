@@ -40,7 +40,7 @@ async function getDashboardData() {
         user: userData,
       }
     })
-  )
+  ) as any[]
 
   // Process project progress
   const projectProgress = await Promise.all(
@@ -54,7 +54,7 @@ async function getDashboardData() {
         tasks: tasks,
       }
     })
-  )
+  ) as any[]
 
   return {
     totalProjects: totalProjects.data().count,
@@ -156,7 +156,7 @@ export default async function DashboardPage() {
             </div>
             <div className="space-y-3">
               {d.projectProgress.map((p) => {
-                const done = p.tasks.filter((t) => t.status === 'COMPLETED').length
+                const done = p.tasks.filter((t: any) => t.status === 'COMPLETED').length
                 const pct = p.tasks.length ? Math.round((done / p.tasks.length) * 100) : 0
                 return (
                   <div key={p.id}>

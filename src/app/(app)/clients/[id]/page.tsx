@@ -21,7 +21,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
     const pdata = pdoc.data() as any
     const managerDoc = await adminDb.collection('users').doc(pdata.managerId).get()
     const tasksSnapshot = await adminDb.collection('tasks').where('projectId', '==', pdoc.id).get()
-    const tasks = tasksSnapshot.docs.map(t => t.data())
+    const tasks = tasksSnapshot.docs.map((t: any) => t.data())
     
     return {
       id: pdoc.id,
@@ -75,8 +75,8 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
       <div className="grid grid-cols-3 gap-4 mb-6">
         {[
           { label: 'Total Projects', value: client.projects.length },
-          { label: 'Active', value: client.projects.filter(p => p.status === 'IN_PROGRESS').length },
-          { label: 'Completed', value: client.projects.filter(p => p.status === 'COMPLETED').length },
+          { label: 'Active', value: client.projects.filter((p: any) => p.status === 'IN_PROGRESS').length },
+          { label: 'Completed', value: client.projects.filter((p: any) => p.status === 'COMPLETED').length },
         ].map(s => (
           <div key={s.label} className="rounded-xl p-4 text-center"
             style={{ background: 'var(--bg1)', border: '1px solid var(--border)' }}>
@@ -97,7 +97,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
         </div>
       ) : (
         <div className="space-y-3">
-          {client.projects.map(p => {
+          {client.projects.map((p: any) => {
             const pct = getProjectProgress(p.tasks)
             return (
               <Link key={p.id} href={`/projects/${p.id}`}

@@ -9,22 +9,25 @@ export default async function ActivityPage() {
   await getServerSession(authOptions)
 
   const activitiesSnapshot = await adminDb.collection('activities').orderBy('createdAt', 'desc').limit(100).get()
-  const activities = await Promise.all(activitiesSnapshot.docs.map(async (doc) => {
-    const data = doc.data()
-    
-    // Manual join for user, project, task
-    const userDoc = await adminDb.collection('users').doc(data.userId).get()
-    const projectDoc = data.projectId ? await adminDb.collection('projects').doc(data.projectId).get() : null
-    const taskDoc = data.taskId ? await adminDb.collection('tasks').doc(data.taskId).get() : null
+  const rawActivities = activitiesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[]
 
-    return {
-      id: doc.id,
-      ...data,
-      createdAt: data.createdAt?.toDate?.() || data.createdAt,
-      user: { id: userDoc.id, ...userDoc.data() },
-      project: projectDoc ? { id: projectDoc.id, name: projectDoc.data()?.name } : null,
-      task: taskDoc ? { id: taskDoc.id, title: taskDoc.data()?.title } : null,
-    }
+  // Batch fetch all unique users and projects
+  const userIds = Array.from(new Set(rawActivities.map(a => a.userId).filter(Boolean)))
+  const projectIds = Array.from(new Set(rawActivities.map(a => a.projectId).filter(Boolean)))
+
+  const [userDocs, projectDocs] = await Promise.all([
+    userIds.length ? adminDb.getAll(...userIds.map(id => adminDb.collection('users').doc(id))) : [],
+    projectIds.length ? adminDb.getAll(...projectIds.map(id => adminDb.collection('projects').doc(id))) : [],
+  ])
+
+  const userMap: Record<string, any> = Object.fromEntries((userDocs as any[]).map(d => [d.id, { id: d.id, ...(d.data() || {}) }]))
+  const projectMap: Record<string, any> = Object.fromEntries((projectDocs as any[]).map(d => [d.id, { id: d.id, ...(d.data() || {}) }]))
+
+  const activities = rawActivities.map(data => ({
+    ...data,
+    createdAt: data.createdAt?.toDate?.() || data.createdAt,
+    user: userMap[data.userId] || { id: data.userId, name: 'Unknown', initials: '?', avatarColor: '#888' },
+    project: data.projectId ? projectMap[data.projectId] : null,
   }))
 
   // Group by date

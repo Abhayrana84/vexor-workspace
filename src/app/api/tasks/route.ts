@@ -34,8 +34,8 @@ export const GET = withAuth(async (req, session) => {
   const rawTasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[]
 
   // BATCH FETCH (FIX 11)
-  const pIds = [...new Set(rawTasks.map(t => t.projectId).filter(Boolean))]
-  const uIds = [...new Set(rawTasks.map(t => t.assigneeId).filter(Boolean))]
+  const pIds = Array.from(new Set(rawTasks.map((t: any) => t.projectId).filter(Boolean)))
+  const uIds = Array.from(new Set(rawTasks.map((t: any) => t.assigneeId).filter(Boolean)))
 
   const [projectDocs, userDocs] = await Promise.all([
     pIds.length > 0 ? adminDb.getAll(...pIds.map(id => adminDb.collection('projects').doc(id))) : Promise.resolve([]),

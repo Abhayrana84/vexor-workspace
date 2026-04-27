@@ -80,7 +80,7 @@ export default function EditProjectPage() {
     }
   }
 
-  const isAdmin = session?.user?.permission === 'ADMIN'
+  const isAdmin = ['ADMIN', 'SUPER_ADMIN'].includes(session?.user?.role || '')
 
   return (
     <div className="p-6 max-w-2xl">
