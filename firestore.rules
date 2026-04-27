@@ -1,0 +1,93 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper: Check if user has a specific permission in their Auth Token (Custom Claims)
+    // Custom claims are more secure than fetching a document because they are immutable on the client.
+    function hasPermission(perm) {
+      return request.auth != null && request.auth.token.permissions[perm] == true;
+    }
+
+    // Helper: Check for specific role
+    function hasRole(role) {
+      return request.auth != null && request.auth.token.role == role;
+    }
+
+    // Helper: Ownership check
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // --- COLLECTIONS ---
+
+    // USERS: Only admins can manage. Users can read themselves.
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if hasPermission('can_manage_users');
+    }
+
+    // PROJECTS: Admin can manage. Members can read if in the 'members' array or manager.
+    match /projects/{projectId} {
+      allow read: if request.auth != null && (
+        hasPermission('can_manage_projects') || 
+        resource.data.members.hasAny([request.auth.uid]) ||
+        resource.data.managerId == request.auth.uid
+      );
+      allow write: if hasPermission('can_manage_projects');
+    }
+
+    // TASKS: 
+    // Optimization: We avoid get() calls here to prevent DoS/Billing attacks.
+    // Assignees can always read their own tasks.
+    match /tasks/{taskId} {
+      allow read: if request.auth != null && (
+        hasPermission('can_assign_tasks') || 
+        resource.data.assigneeId == request.auth.uid ||
+        // Denormalized check: we will ensure projectId is checked via query filters
+        // or add a 'memberIds' field to the task during creation.
+        resource.data.projectMemberIds.hasAny([request.auth.uid])
+      );
+      
+      allow create: if hasPermission('can_assign_tasks');
+      
+      allow update: if hasPermission('can_assign_tasks') || (
+        resource.data.assigneeId == request.auth.uid && 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+      );
+      
+      allow delete: if hasPermission('can_manage_projects');
+    }
+
+    // FINANCES: ABSOLUTE ISOLATION
+    match /finances/{docId} {
+      allow read, write: if hasPermission('can_view_finance');
+    }
+
+    // AUDIT LOGS / ACTIVITIES: SERVER-ONLY WRITES
+    // This prevents client-side spoofing and poisoning.
+    match /activities/{activityId} {
+      allow read: if hasPermission('can_view_audit_logs');
+      allow write: if false; // Only Admin SDK (Backend) can write
+    }
+    
+    match /audit_logs/{logId} {
+      allow read: if hasPermission('can_view_audit_logs');
+      allow write: if false;
+    }
+
+    // CREDENTIALS: SERVER-ONLY (FIX 6)
+    match /credentials/{uid} {
+      allow read, write: if false;
+    }
+
+    // CLIENTS: PROTECTED PII
+    match /clients/{clientId} {
+      allow read, write: if hasPermission('can_manage_clients');
+    }
+
+    // DEFAULT: DENY EVERYTHING
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}
