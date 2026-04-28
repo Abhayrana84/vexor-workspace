@@ -6,10 +6,9 @@ import { canAssignTasks } from '@/lib/utils'
 import { TasksClient } from './TasksClient'
 
 export default async function TasksPage({ searchParams }: { searchParams: { projectId?: string } }) {
-  const session = await getServerSession(authOptions)
-  const isAdmin = canAssignTasks(session?.user?.permissions)
-
   try {
+    const session = await getServerSession(authOptions)
+    const isAdmin = canAssignTasks(session?.user?.permissions)
     let tasksQuery = adminDb.collection('tasks').orderBy('status', 'asc')
 
     if (searchParams.projectId) {
