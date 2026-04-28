@@ -15,7 +15,7 @@ import toast from 'react-hot-toast'
 type Period = 'TODAY' | 'WEEK' | 'MONTH' | 'YEAR' | 'ALL'
 type TxType = 'ALL' | 'INCOME' | 'EXPENSE'
 
-interface Record {
+interface Transaction {
   id: string
   type: 'INCOME' | 'EXPENSE'
   category: string
@@ -68,7 +68,7 @@ const PERIOD_LABELS: Record<Period, string> = {
 
 // ─── CSV Export ──────────────────────────────────────────────────────────────
 
-function exportToCSV(records: Record[], period: Period) {
+function exportToCSV(records: Transaction[], period: Period) {
   const periodLabel = PERIOD_LABELS[period].replace(/ /g, '_')
   const fileName = `Vexor_Finances_${periodLabel}_${new Date().toISOString().slice(0, 10)}.csv`
 
@@ -77,7 +77,7 @@ function exportToCSV(records: Record[], period: Period) {
 
   const headers = ['Date', 'Category', 'Client / Party', 'Description', 'Type', 'Status', 'Amount (INR)']
 
-  const rows = records.map(r => [
+  const rows = records.map((r: Transaction) => [
     formatDate(r.createdAt),
     r.category,
     r.clientName || '',
@@ -199,7 +199,7 @@ function AddTransactionModal({ onClose, onAdded }: { onClose: () => void; onAdde
 export default function FinancesPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const [records, setRecords]   = useState<Record[]>([])
+  const [records, setRecords]   = useState<Transaction[]>([])
   const [summary, setSummary]   = useState({ totalIncome: 0, totalExpense: 0, balance: 0, incomeGrowth: null as string | null, expenseGrowth: null as string | null })
   const [loading, setLoading]   = useState(true)
   const [showAdd, setShowAdd]   = useState(false)
