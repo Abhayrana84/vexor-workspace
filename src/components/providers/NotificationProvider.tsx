@@ -12,7 +12,7 @@ function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
   const raw = atob(base64)
-  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)))
+  return Uint8Array.from(Array.from(raw).map(c => c.charCodeAt(0)))
 }
 
 /** Plays a soft notification beep using Web Audio API (no file needed) */
