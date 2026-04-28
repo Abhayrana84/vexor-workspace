@@ -111,7 +111,11 @@ export function Sidebar({ user }: SidebarProps) {
 
       {/* Sign out */}
       <div className="p-3" style={{ borderTop: '1px solid var(--border)' }}>
-        <button onClick={() => signOut({ callbackUrl: `${window.location.origin}/login` })}
+        <button
+          onClick={async () => {
+            await signOut({ redirect: false })
+            window.location.href = `${window.location.origin}/login`
+          }}
           className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium"
           style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.18)', color: '#ef4444' }}>
           <LogOut size={12} />
