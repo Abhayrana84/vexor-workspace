@@ -173,6 +173,14 @@ export const POST = withAuth(async (req, session) => {
     }
 
     const docRef = await adminDb.collection('users').add(userData)
+
+    // Also write a credentials doc so change-password works for dashboard-created users
+    await adminDb.collection('credentials').doc(docRef.id).set({
+      passwordHash: hash,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    })
+
     return NextResponse.json({ id: docRef.id, ...userData })
   } catch (error: any) {
     console.error('Error adding member:', error)

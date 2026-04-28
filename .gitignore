@@ -37,3 +37,9 @@ Thumbs.db
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# Firebase
+firebase-service-account.json
+
+# Temp / debug scripts
+check_user.mjs
