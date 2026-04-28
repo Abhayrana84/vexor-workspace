@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth'
 import { adminDb } from '@/lib/firebase-admin'
 
 import { withAuth } from '@/lib/api-handler'
+import { sendPushToAll } from '@/lib/push-notify'
 
 export const GET = withAuth(async (req, session) => {
   // Extract id from req.nextUrl.pathname since withAuth wraps NextRequest but not params perfectly
@@ -106,9 +107,26 @@ export const PATCH = withAuth(async (req, session) => {
       target: (task as any).title,
       projectId: (task as any).projectId,
       taskId: task.id,
-      visibleTo: (task as any).projectMemberIds || [], // NEW: Single-query feed optimization
+      visibleTo: (task as any).projectMemberIds || [],
       createdAt: new Date(),
     })
+
+    const statusLabel: Record<string, string> = {
+      TODO: '📋 To Do', IN_PROGRESS: '🔄 In Progress', REVIEW: '🔍 Review', COMPLETED: '✅ Done'
+    }
+    sendPushToAll({
+      title: `Task Moved → ${statusLabel[status] || status}`,
+      body: `${session.user.name} moved "${(task as any).title}"`,
+      url: `/tasks/${task.id}`,
+      tag: `task-moved-${task.id}`,
+    }, session.user.id)
+  } else if (title || description !== undefined || priority || assigneeId !== undefined) {
+    sendPushToAll({
+      title: '✏️ Task Updated',
+      body: `${session.user.name} updated "${(task as any).title}"`,
+      url: `/tasks/${task.id}`,
+      tag: `task-updated-${task.id}`,
+    }, session.user.id)
   }
 
   return NextResponse.json(task)

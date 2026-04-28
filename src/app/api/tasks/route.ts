@@ -16,6 +16,7 @@ const createTaskSchema = z.object({
 })
 
 import { withAuth } from '@/lib/api-handler'
+import { sendPushToAll } from '@/lib/push-notify'
 
 export const GET = withAuth(async (req, session) => {
   const { searchParams } = new URL(req.url)
@@ -115,9 +116,17 @@ export const POST = withAuth(async (req, session) => {
     target: title,
     projectId,
     taskId: taskRef.id,
-    visibleTo: projectMemberIds, // NEW: Single-query feed optimization
+    visibleTo: projectMemberIds,
     createdAt: now,
   })
+
+  // Push notification to all other users
+  sendPushToAll({
+    title: '📋 New Task Created',
+    body: `${session.user.name} created "${title}" in ${projectData.name}`,
+    url: `/tasks/${taskRef.id}`,
+    tag: `task-created-${taskRef.id}`,
+  }, session.user.id)
 
   return NextResponse.json({ id: taskRef.id, ...taskData }, { status: 201 })
 }, { rateLimit: { limit: 10, windowMs: 60 * 1000 } });

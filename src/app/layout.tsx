@@ -1,9 +1,9 @@
-// src/app/layout.tsx
 import type { Metadata } from 'next'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { SessionProvider } from '@/components/providers/SessionProvider'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
+import { NotificationProvider } from '@/components/providers/NotificationProvider'
 import { Toaster } from 'react-hot-toast'
 import '@/styles/globals.css'
 
@@ -20,6 +20,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         <SessionProvider session={session}>
           <ThemeProvider>
+            <NotificationProvider />
             {children}
             <Toaster
               position="bottom-right"
