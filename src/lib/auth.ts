@@ -26,13 +26,17 @@ export const authOptions: NextAuthOptions = {
         if (userSnapshot.empty) return null
         const user = { id: userSnapshot.docs[0].id, ...(userSnapshot.docs[0].data() as any) }
 
-        // FIX 6: Fetch password hash from secure /credentials collection
+        // Try credentials collection first; fall back to password on users doc
+        // (dashboard-created users have hash on users doc, not credentials collection)
         const credDoc = await adminDb.collection('credentials').doc(user.id).get()
-        const credentialsData = credDoc.data()
+        const passwordHash: string | undefined =
+          credDoc.exists
+            ? (credDoc.data() as any).passwordHash
+            : user.password
 
-        if (!credentialsData?.passwordHash) return null
+        if (!passwordHash) return null
 
-        const passwordMatch = await bcrypt.compare(credentials.password, credentialsData.passwordHash)
+        const passwordMatch = await bcrypt.compare(credentials.password, passwordHash)
         if (!passwordMatch) return null
 
         // Fetch the latest Custom Claims from Firebase Auth
