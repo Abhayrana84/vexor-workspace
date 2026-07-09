@@ -27,7 +27,24 @@ async function bootstrap() {
   }));
 
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+    origin: (origin, callback) => {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      const allowedOrigins = [
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+        'https://vexoritsolutions.site',
+        'http://vexoritsolutions.site',
+      ];
+      const isRenderSubdomain = /\.onrender\.com$/.test(new URL(origin).hostname);
+      if (allowedOrigins.includes(origin) || isRenderSubdomain) {
+        callback(null, true);
+      } else {
+        callback(null, false); // Block origin without throwing uncaught server errors
+      }
+    },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
