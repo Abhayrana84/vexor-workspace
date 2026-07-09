@@ -11,9 +11,12 @@ export class AuthController {
   @Post('register')
   async register(@Body() body: RegisterDto, @Res({ passthrough: true }) response: Response) {
     const result = await this.authService.register(body);
+    const isProd = process.env.NODE_ENV === 'production';
     response.cookie('token', result.access_token, {
-      httpOnly: true, secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax', maxAge: 7 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     return { user: result.user };
   }
@@ -21,20 +24,25 @@ export class AuthController {
   /** Accepts email OR userId (VXR2601 / CLNT2601) in the `identifier` field */
   @Post('login')
   async login(@Body() body: LoginDto, @Res({ passthrough: true }) response: Response) {
-    // Support both { email, password } and { identifier, password }
     const identifier = body.identifier || body.email;
     const result = await this.authService.login(identifier!, body.password);
+    const isProd = process.env.NODE_ENV === 'production';
     response.cookie('token', result.access_token, {
-      httpOnly: true, secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax', maxAge: 7 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     return { user: result.user };
   }
 
   @Post('logout')
   async logout(@Res({ passthrough: true }) response: Response) {
+    const isProd = process.env.NODE_ENV === 'production';
     response.clearCookie('token', {
-      httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax',
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
     });
     return { success: true };
   }
