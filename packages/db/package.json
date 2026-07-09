@@ -1,0 +1,23 @@
+{
+  "name": "@vexor/db",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "scripts": {
+    "generate": "prisma generate",
+    "push": "prisma db push",
+    "seed": "node prisma/seed.js",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.10.0",
+    "bcryptjs": "^2.4.3"
+  },
+  "devDependencies": {
+    "prisma": "^5.10.0",
+    "typescript": "^5.0.0"
+  }
+}
