@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspaces --if-present",
-    "build": "npm run build --workspaces --if-present",
+    "build": "npm run build --workspace=@vexor/types && npm run build --workspace=@vexor/db && npm run build --workspace=vexor-api && npm run build --workspace=vexor-web",
     "start": "npm run start --workspaces --if-present",
     "db:generate": "npm run generate --workspace=packages/db",
     "db:push": "npm run push --workspace=packages/db",
