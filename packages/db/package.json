@@ -10,7 +10,7 @@
     "generate": "prisma generate",
     "push": "prisma db push",
     "seed": "node prisma/seed.js",
-    "build": "tsc"
+    "build": "prisma generate && tsc"
   },
   "dependencies": {
     "@prisma/client": "^5.10.0",
